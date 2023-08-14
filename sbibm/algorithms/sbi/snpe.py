@@ -12,7 +12,7 @@ from sbibm.algorithms.sbi.utils import (
     wrap_simulator_fn,
 )
 from sbibm.tasks.task import Task
-
+import time
 
 def run(
     task: Task,
@@ -95,7 +95,10 @@ def run(
     inference_method = inference.SNPE_C(prior, density_estimator=density_estimator_fun)
     posteriors = []
     proposal = prior
+    samples = []
+    elapsed_time = []
 
+    start_time = time.time()
     for _ in range(num_rounds):
         theta, x = inference.simulate_for_sbi(
             simulator,
@@ -119,15 +122,20 @@ def run(
         proposal = posterior.set_default_x(observation)
         posteriors.append(posterior)
 
-    posterior = wrap_posterior(posteriors[-1], transforms)
+        posterior = wrap_posterior(posterior, transforms)
+        samples.append(posterior.sample((num_samples,)).detach())
+
+        elapsed_time.append(time.time() - start_time)
+
+    # posterior = wrap_posterior(posteriors[-1], transforms)
 
     assert simulator.num_simulations == num_simulations
 
-    samples = posterior.sample((num_samples,)).detach()
+    # samples = posterior.sample((num_samples,)).detach()
 
     if num_observation is not None:
         true_parameters = task.get_true_parameters(num_observation=num_observation)
         log_prob_true_parameters = posterior.log_prob(true_parameters)
-        return samples, simulator.num_simulations, log_prob_true_parameters
+        return samples, simulator.num_simulations, log_prob_true_parameters, elapsed_time
     else:
-        return samples, simulator.num_simulations, None
+        return samples, simulator.num_simulations, None, elapsed_time

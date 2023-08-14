@@ -1,6 +1,7 @@
 import logging
 import math
 from typing import Any, Dict, Optional, Tuple
+import time
 
 import torch
 from sbi import inference as inference
@@ -64,6 +65,7 @@ def run(
     Returns:
         Samples from posterior, number of simulator calls, log probability of true params if computable
     """
+
     assert not (num_observation is None and observation is None)
     assert not (num_observation is not None and observation is not None)
 
@@ -108,7 +110,10 @@ def run(
 
     posteriors = []
     proposal = prior
+    samples = []
+    elapsed_time = []
 
+    start_time = time.time()
     for r in range(num_rounds):
         theta, x = inference.simulate_for_sbi(
             simulator,
@@ -142,10 +147,16 @@ def run(
         proposal = posterior.set_default_x(observation)
         posteriors.append(posterior)
 
-    posterior = wrap_posterior(posteriors[-1], transforms)
+        posterior = wrap_posterior(posterior, transforms)
+        samples.append(posterior.sample((num_samples,)).detach())
+
+        elapsed_time.append(time.time() - start_time)
+
+
+    # posterior = wrap_posterior(posteriors[-1], transforms)
 
     assert simulator.num_simulations == num_simulations
 
-    samples = posterior.sample((num_samples,)).detach()
+    # samples = posterior.sample((num_samples,)).detach()
 
-    return samples, simulator.num_simulations, None
+    return samples, simulator.num_simulations, None, elapsed_time
