@@ -63,6 +63,16 @@ def get_task(task_name: str, *args: Any, **kwargs: Any) -> Task:
 
         return TwoMoons(*args, **kwargs)
 
+    elif task_name == "hyperboloid":
+        from sbibm.tasks.hyperboloid.task import Hyperboloid
+
+        return Hyperboloid(*args, **kwargs)
+
+    elif task_name == "ornstein_uhlenbeck":
+        from sbibm.tasks.ornstein_uhlenbeck.task import Ornstein_Uhlenbeck
+
+        return Ornstein_Uhlenbeck(*args, **kwargs)
+
     else:
         raise NotImplementedError()
 
