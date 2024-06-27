@@ -72,6 +72,11 @@ def get_task(task_name: str, *args: Any, **kwargs: Any) -> Task:
         from sbibm.tasks.ornstein_uhlenbeck.task import Ornstein_Uhlenbeck
 
         return Ornstein_Uhlenbeck(*args, **kwargs)
+    
+    elif task_name == "mrna":
+        from sbibm.tasks.mrna.task import mrna
+
+        return mrna(*args, **kwargs)
 
     else:
         raise NotImplementedError()
